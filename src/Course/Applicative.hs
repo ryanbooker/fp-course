@@ -1,7 +1,7 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE InstanceSigs        #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE RebindableSyntax    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE RebindableSyntax #-}
 
 module Course.Applicative(
   Applicative(..)
@@ -18,12 +18,12 @@ module Course.Applicative(
 , (>>)
 ) where
 
-import Course.Core
-import Course.ExactlyOne
-import Course.Functor hiding ((<$>))
-import Course.List
-import Course.Optional
-import qualified Prelude as P(fmap, return, (>>=))
+import           Course.Core
+import           Course.ExactlyOne
+import           Course.Functor    hiding ((<$>))
+import           Course.List
+import           Course.Optional
+import qualified Prelude           as P (fmap, return, (>>=))
 
 -- | All instances of the `Applicative` type-class must satisfy three laws.
 -- These laws are not checked by the compiler. These laws are given as:
@@ -61,8 +61,7 @@ infixl 4 <*>
   (a -> b)
   -> f a
   -> f b
-(<$>) =
-  error "todo: Course.Applicative#(<$>)"
+(<$>) = (<*>) . pure
 
 -- | Insert into ExactlyOne.
 --
@@ -74,14 +73,13 @@ instance Applicative ExactlyOne where
   pure ::
     a
     -> ExactlyOne a
-  pure =
-    error "todo: Course.Applicative pure#instance ExactlyOne"
-  (<*>) :: 
+  pure = ExactlyOne
+
+  (<*>) ::
     ExactlyOne (a -> b)
     -> ExactlyOne a
     -> ExactlyOne b
-  (<*>) =
-    error "todo: Course.Applicative (<*>)#instance ExactlyOne"
+  (<*>) (ExactlyOne f) (ExactlyOne a) = ExactlyOne (f a)
 
 -- | Insert into a List.
 --
@@ -93,14 +91,13 @@ instance Applicative List where
   pure ::
     a
     -> List a
-  pure =
-    error "todo: Course.Applicative pure#instance List"
+  pure = (:. Nil)
+
   (<*>) ::
     List (a -> b)
     -> List a
     -> List b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance List"
+  (<*>) = error ""
 
 -- | Insert into an Optional.
 --
