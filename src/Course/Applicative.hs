@@ -97,7 +97,12 @@ instance Applicative List where
     List (a -> b)
     -> List a
     -> List b
-  (<*>) = error ""
+  -- (<*>) = flip (flatMap . flip map)
+  (<*>) fs as = flip flatMap fs (\f ->
+                  flip flatMap as (\a ->
+                    pure (f a)
+                  )
+                )
 
 -- | Insert into an Optional.
 --
@@ -115,14 +120,25 @@ instance Applicative Optional where
   pure ::
     a
     -> Optional a
-  pure =
-    error "todo: Course.Applicative pure#instance Optional"
+  pure = Full
+
   (<*>) ::
     Optional (a -> b)
     -> Optional a
     -> Optional b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance Optional"
+  -- (<*>) Empty _           = Empty
+  -- (<*>) _ Empty           = Empty
+  -- (<*>) (Full f) (Full a) = Full (f a)
+  -- (<*>) = flip (bindOptional . flip mapOptional)
+  (<*>) fs as = flip bindOptional fs (\f ->
+                  flip bindOptional as (\a ->
+                    pure (f a)
+                  )
+                )
+
+-- Can always define the parent Type class functions in terms of the child.
+-- e.g. <$> can be written in terms of pure and <*> in Applicative
+-- e.g. <*> can be written in terms of return and >>= in Monad
 
 -- | Insert into a constant function.
 --
@@ -146,15 +162,17 @@ instance Applicative ((->) t) where
   pure ::
     a
     -> ((->) t a)
-  pure =
-    error "todo: Course.Applicative pure#((->) t)"
+  -- a -> ((->) t a)
+  -- a -> (t -> a)
+  -- a -> t -> a
+  pure = const
+
   (<*>) ::
     ((->) t (a -> b))
     -> ((->) t a)
     -> ((->) t b)
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance ((->) t)"
-
+  -- (t -> a -> b) -> (t -> a) -> t -> b
+  (<*>) tab ta t = tab t (ta t)
 
 -- | Apply a binary function in the environment.
 --
@@ -181,8 +199,7 @@ lift2 ::
   -> f a
   -> f b
   -> f c
-lift2 =
-  error "todo: Course.Applicative#lift2"
+lift2 f a b = f <$> a <*> b
 
 -- | Apply a ternary function in the environment.
 --
@@ -213,8 +230,7 @@ lift3 ::
   -> f b
   -> f c
   -> f d
-lift3 =
-  error "todo: Course.Applicative#lift3"
+lift3 f a b c = lift2 f a b <*> c
 
 -- | Apply a quaternary function in the environment.
 --
@@ -246,8 +262,7 @@ lift4 ::
   -> f c
   -> f d
   -> f e
-lift4 =
-  error "todo: Course.Applicative#lift4"
+lift4 f a b c d = lift3 f a b c <*> d
 
 -- | Apply, discarding the value of the first argument.
 -- Pronounced, right apply.
@@ -272,8 +287,7 @@ lift4 =
   f a
   -> f b
   -> f b
-(*>) =
-  error "todo: Course.Applicative#(*>)"
+(*>) = lift2 (flip const)
 
 -- | Apply, discarding the value of the second argument.
 -- Pronounced, left apply.
@@ -298,8 +312,7 @@ lift4 =
   f b
   -> f a
   -> f b
-(<*) =
-  error "todo: Course.Applicative#(<*)"
+(<*) = lift2 const
 
 -- | Sequences a list of structures to a structure of list.
 --
@@ -321,8 +334,10 @@ sequence ::
   Applicative f =>
   List (f a)
   -> f (List a)
-sequence =
-  error "todo: Course.Applicative#sequence"
+sequence = foldRight (lift2 (:.)) (pure Nil)
+-- building a list uses foldRight (:.) Nil
+-- we are inside an f
+-- lift everythign to f
 
 -- | Replicate an effect a given number of times.
 --
@@ -345,8 +360,7 @@ replicateA ::
   Int
   -> f a
   -> f (List a)
-replicateA =
-  error "todo: Course.Applicative#replicateA"
+replicateA n a = sequence $ replicate n a
 
 -- | Filter a list with a predicate that produces an effect.
 --
