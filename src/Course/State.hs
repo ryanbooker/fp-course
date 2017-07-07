@@ -1,18 +1,18 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE InstanceSigs        #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE RebindableSyntax    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE RebindableSyntax #-}
 
 module Course.State where
 
-import Course.Core
-import qualified Prelude as P
-import Course.Optional
-import Course.List
-import Course.Functor
-import Course.Applicative
-import Course.Monad
-import qualified Data.Set as S
+import           Course.Applicative
+import           Course.Core
+import           Course.Functor
+import           Course.List
+import           Course.Monad
+import           Course.Optional
+import qualified Data.Set           as S
+import qualified Prelude            as P
 
 -- $setup
 -- >>> import Test.QuickCheck.Function
@@ -40,8 +40,7 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  (<$>) =
-    error "todo: Course.State#(<$>)"
+  (<$>) f (State g) = State $ (\(a, s) -> (f a, s)) . g
 
 -- | Implement the `Applicative` instance for `State s`.
 --
@@ -58,14 +57,13 @@ instance Applicative (State s) where
   pure ::
     a
     -> State s a
-  pure =
-    error "todo: Course.State pure#instance (State s)"
+  pure a = State (\s -> (a, s))
+
   (<*>) ::
     State s (a -> b)
     -> State s a
-    -> State s b 
-  (<*>) =
-    error "todo: Course.State (<*>)#instance (State s)"
+    -> State s b
+  (<*>) (State f) a = State $ (\(f', s) -> runState (f' <$> a) s) . f
 
 -- | Implement the `Bind` instance for `State s`.
 --
