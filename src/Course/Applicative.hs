@@ -387,8 +387,15 @@ filtering ::
   (a -> f Bool)
   -> List a
   -> f (List a)
-filtering =
-  error "todo: Course.Applicative#filtering"
+filtering _ Nil      = pure Nil
+-- filtering p (h :. t) = (bool <*> (:.) h) <$> filtering p t <*> p h
+-- filtering p (h :. t) = if p h then h :. filtering p t else filtering p t
+-- filtering p (h :. t) = bool (filtering p t) (h :. filtering p t) (p h)
+-- filtering p (h :. t) = bool (filtering p t) ((:.) h filtering p t) (p h)
+--                        f    t               g         t
+-- filtering p (h :. t) = bool (filtering p t) (((:.) h) filtering p t) (p h)
+-- filtering p (h :. t) = lift2 (bool <*> ((:.) h)) (filtering p t) (p h)
+filtering p (h :. t) = lift2 (bool <*> (:.) h) (filtering p t) (p h)
 
 -----------------------
 -- SUPPORT LIBRARIES --
