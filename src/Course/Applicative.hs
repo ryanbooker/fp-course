@@ -388,7 +388,6 @@ filtering ::
   -> List a
   -> f (List a)
 filtering _ Nil      = pure Nil
--- filtering p (h :. t) = (bool <*> (:.) h) <$> filtering p t <*> p h
 -- filtering p (h :. t) = if p h then h :. filtering p t else filtering p t
 -- filtering p (h :. t) = bool (filtering p t) (h :. filtering p t) (p h)
 -- filtering p (h :. t) = bool (filtering p t) ((:.) h filtering p t) (p h)

@@ -144,7 +144,9 @@ findM ::
   -> List a
   -> f (Optional a)
 findM _ Nil      = pure Empty
-findM f (h :. t) = undefined
+-- findM p (h :. t) = if p h then Full h else findM p t
+-- findM p (h :. t) = bool (findM p t) (Full h) (p h)
+findM p (h :. t) = p h >>= bool (findM p t) (pure (Full h))
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
